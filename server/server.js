@@ -14,7 +14,7 @@ const db = pgp("postgres://tpl622_6@localhost:5432/tintamaytoes");
 
 // Testing to make sure it connects to the back end
 app.get("/test-connection", function(req, res) {
-  res.json("Welcome! Back end to Tin - Ta - Maytoes is now connected");
+  res.json("Welcome! Back end to Tin - Ta - Maytoes - API is now connected");
 });
 
 // GET one thread by id - /threads/id
