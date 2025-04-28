@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "server": "nodemon server/server.js",
+    "loadDB": "/usr/local/bin/psql -f server/database/db.sql",
+    "seed": "/usr/local/bin/psql -d tintamaytoes -f server/database/seed.sql",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
