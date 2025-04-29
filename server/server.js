@@ -28,48 +28,36 @@ app.get("/test-connection", function(req, res) {
 // Combine the questions and  choices
 // Send the response back
 
-//get the choices
-const getChoices = (questionId) => {
-  return db.any('SELECT id, text, value FROM choices WHERE question_id = $1', questionId);
-};
-//  get all of the questions with  choices
-app.get('/questions-and-choices', async (req, res) => {
-  try {
-    const questions = await db.any('SELECT id, text FROM questions');
-
-    const questionsWithChoices = await Promise.all(
-      questions.map(async (question) => {
-        const choices = await getChoices(question.id);
-        return { ...question, choices };
-      })
-    );
-
-    res.json(questionsWithChoices);
-  } catch (error) {
-    console.error('Error fetching questions:', error);
-    res.status(500).json({ error: 'Failed to fetch questions' });
-  }
-});
-
-// API endpoint to get a specific question with its choices by ID
-app.get('/questions/:id', async (req, res) => {
+// // GET a specific question and the choices - ScenarioGamePlay
+app.get("/questions/:id", async (req, res) => {
   const questionId = parseInt(req.params.id);
 
-  try {
-    const question = await db.oneOrNone('SELECT id, text FROM questions WHERE id = $1', questionId);
+  if (isNaN(questionId)) {
+    return res.status(400).json({ error: "Invalid question ID" });
+  }
 
+  try {
+    const question = await db.oneOrNone("SELECT id, text FROM questions WHERE id = $1", [questionId]);
     if (!question) {
-      return res.status(404).json({ error: 'Question not found' });
+      return res.status(404).json({ error: "Question not found" });
     }
 
-    const choices = await getChoices(questionId);
+    const choices = await db.many(
+      `SELECT id, text, value
+       FROM choices
+       WHERE question_id = $1
+       ORDER BY RANDOM()
+       LIMIT 2`,
+      [questionId]
+    );
 
-    res.json({ ...question, choices });
+    res.json({ question, choices });
   } catch (error) {
-    console.error('Error fetching question:', error);
-    res.status(500).json({ error: 'Failed to fetch question' });
+    console.error(`Error fetching question ${questionId}:`, error);
+    res.status(500).json({ error: `Failed to fetch question ${questionId}` });
   }
 });
+
 
 app.listen(port, function() {
   console.log("Server is running on port " + port);
