@@ -5,13 +5,15 @@ import "dotenv/config";
 
 const app = express();
 const port = 5000;
+var dbconnectionURL = process.env.TINTAMAYTOES_DB_URL; 
+console.log("db", dbconnectionURL);
 
 app.use(cors());
 app.use(json());
 
 // connect to database
 const pgp = pgPromise();
-const db = pgp(process.env.TINTAMAYTOES_DB_URL);
+const db = pgp(dbconnectionURL);
 
 // Testing to make sure it connects to the back end
 app.get("/test-connection", function(req, res) {
