@@ -32,7 +32,6 @@ app.get("/test-connection", function(req, res) {
 const getChoices = (questionId) => {
   return db.any('SELECT id, text, value FROM choices WHERE question_id = $1', questionId);
 };
-
 //  get all of the questions with  choices
 app.get('/questions-and-choices', async (req, res) => {
   try {

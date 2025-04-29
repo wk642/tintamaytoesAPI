@@ -1,13 +1,13 @@
 -- create database
 
 -- DROP the database first in case there's an existing one
-DROP DATABASE tintamaytoes;
+-- DROP DATABASE tintamaytoes;
 
--- CREATE the database 
-CREATE DATABASE tintamaytoes;
+-- -- CREATE the database 
+-- CREATE DATABASE tintamaytoes;
 
 -- connect to the database
-\connect tintamaytoes;
+-- \connect tintamaytoes;
 
 -- CREATE tables
 -- threads
