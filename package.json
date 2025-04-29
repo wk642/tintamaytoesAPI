@@ -4,6 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "env": "source server/.env",
     "server": "nodemon server/server.js",
     "loadDB": "psql -f server/database/db.sql $TINTAMAYTOES_DB_URL",
     "seed": "psql -f server/database/seed.sql $TINTAMAYTOES_DB_URL",
