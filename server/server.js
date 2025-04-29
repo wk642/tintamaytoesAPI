@@ -58,6 +58,19 @@ app.get("/questions/:id", async (req, res) => {
   }
 });
 
+// GET random initial question (4 or 5)
+app.get("/threads", async (req, res) => {
+  try {
+    const initialQuestionIds = [4, 5];
+    const randomQuestionId = initialQuestionIds[Math.floor(Math.random() * initialQuestionIds.length)];
+    const question = await db.one("SELECT id, text FROM questions WHERE id = $1", [randomQuestionId]); 
+    res.json([question]);
+  } catch (error) {
+    console.error("Error fetching threads:", error);
+    res.status(500).json({ error: "Failed to fetch threads" });
+  }
+});
+
 
 app.listen(port, function() {
   console.log("Server is running on port " + port);
