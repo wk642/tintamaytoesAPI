@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "server": "nodemon server/server.js",
-    "loadDB": "source server/.env && psql -f server/database/db.sql $TINTAMAYTOES_DB_URL",
-    "seed": "source server/.env && psql -f server/database/seed.sql $TINTAMAYTOES_DB_URL",
+    "loadDB": "psql -f server/database/db.sql $TINTAMAYTOES_DB_URL",
+    "seed": "psql -f server/database/seed.sql $TINTAMAYTOES_DB_URL",
     "test": "echo \"Error: no test specified\" && exit"
   },
   "repository": {
