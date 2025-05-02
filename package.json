@@ -4,10 +4,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "env": "source server/.env",
-    "server": "nodemon server/server.js",
-    "loadDB": "psql -f server/database/db.sql $TINTAMAYTOES_DB_URL",
-    "seed": "psql -f server/database/seed.sql $TINTAMAYTOES_DB_URL",
+    "env": "source src/.env",
+    "server": "nodemon src/server.js",
+    "loadDB": "psql -f src/database/db.sql $TINTAMAYTOES_DB_URL",
+    "seed": "psql -f src/database/seed.sql $TINTAMAYTOES_DB_URL",
     "test": "echo \"Error: no test specified\" && exit"
   },
   "repository": {

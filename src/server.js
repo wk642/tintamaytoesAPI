@@ -71,6 +71,16 @@ app.get("/threads", async (req, res) => {
   }
 });
 
+// GET all threads from the thread table
+app.get("/previous-threads", async (req, res) => {
+  try {
+    const allThreads = await db.many("SELECT * FROM threads");
+    res.json(allThreads);
+  } catch (error) {
+    console.error("Error fetching all threads:", error);
+    res.status(500).json({ error: "Failed to fetch all threads" });
+  }
+});
 
 app.listen(port, function() {
   console.log("Server is running on port " + port);
