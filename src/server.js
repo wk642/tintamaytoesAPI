@@ -82,6 +82,31 @@ app.get("/previous-threads", async (req, res) => {
   }
 });
 
+// Update the thread as user plays
+app.put('/:id', async (req, res) => {
+  const { id } = req.params;
+  const { question_id, user_choice_selection } = req.body;
+
+  try {
+    // Update the thread 
+    const result = await db.query(
+      `UPDATE threads
+      SET
+        question_id = $1,
+        user_choice_selection = $2
+      WHERE id = $3`,
+      [question_id, user_choice_selection, id]
+    );
+
+    res.json({ message: 'Thread updated successfully' });
+
+
+  } catch (error) {
+    console.error('Error updating thread:', error);
+    res.status(500).json({ error: 'Failed to update thread' });
+  }
+});
+
 app.listen(port, function() {
   console.log("Server is running on port " + port);
 });
