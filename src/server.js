@@ -88,7 +88,7 @@ app.put('/:id', async (req, res) => {
   const { question_id, user_choice_selection } = req.body;
 
   try {
-    // Update the thread 
+    // Update the thread
     const result = await db.query(
       `UPDATE threads
       SET
@@ -104,6 +104,41 @@ app.put('/:id', async (req, res) => {
   } catch (error) {
     console.error('Error updating thread:', error);
     res.status(500).json({ error: 'Failed to update thread' });
+  }
+});
+
+// POST to create a new thread
+app.post("/threads", async (req, res) => {
+  const { player_name, scenario_id } = req.body;
+  try {
+    const newThread = await db.one(
+      "INSERT INTO threads (player_name, scenario_id, created_at) VALUES ($1, $2, NOW()) RETURNING *",
+      [player_name, scenario_id]
+    );
+    res.status(201).json(newThread); 
+  } catch (error) {
+    console.error("Error creating a new thread:", error);
+    res.status(500).json({ error: "Failed to create new thread" });
+  }
+});
+
+// GET thread by ID
+app.get("/threads/:id", async (req, res) => {
+  const threadId = parseInt(req.params.id);
+
+  if (isNaN(threadId)) {
+    return res.status(400).json({ error: "Invalid thread ID" });
+  }
+
+  try {
+    const thread = await db.oneOrNone("SELECT * FROM threads WHERE id = $1", [threadId]);
+    if (!thread) {
+      return res.status(404).json({ error: "Thread not found" });
+    }
+    res.json(thread);
+  } catch (error) {
+    console.error(`Error fetching thread ${threadId}:`, error);
+    res.status(500).json({ error: `Failed to fetch thread ${threadId}` });
   }
 });
 
