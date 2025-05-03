@@ -111,9 +111,6 @@ app.put('/:id', async (req, res) => {
 app.post("/threads", async (req, res) => {
   const { player_name, scenario_id } = req.body;
   try {
-    // Check if the scenario_id exists
-    const scenarioExists = await db.oneOrNone("SELECT id FROM scenarios WHERE id = $1", [scenario_id]);
-  
     const newThread = await db.one(
       "INSERT INTO threads (player_name, scenario_id, created_at) VALUES ($1, $2, NOW()) RETURNING *",
       [player_name, scenario_id]
