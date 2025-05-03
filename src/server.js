@@ -111,14 +111,18 @@ app.put('/:id', async (req, res) => {
 app.post("/threads", async (req, res) => {
   const { player_name, scenario_id } = req.body;
   try {
+    // Check if the scenario_id exists
+    const scenarioExists = await db.oneOrNone("SELECT id FROM scenarios WHERE id = $1", [scenario_id]);
+  
     const newThread = await db.one(
       "INSERT INTO threads (player_name, scenario_id, created_at) VALUES ($1, $2, NOW()) RETURNING *",
       [player_name, scenario_id]
     );
-    res.status(201).json(newThread); 
+    res.status(201).json(newThread);
   } catch (error) {
     console.error("Error creating a new thread:", error);
-    res.status(500).json({ error: "Failed to create new thread" });
+
+    res.status(500).json({ error: "Failed to create new thread", originalError: error.message }); 
   }
 });
 
