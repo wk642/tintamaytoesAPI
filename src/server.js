@@ -109,11 +109,11 @@ app.put('/:id', async (req, res) => {
 
 // POST to create a new thread
 app.post("/threads", async (req, res) => {
-  const { player_name, scenario_id } = req.body;
+  const { player_name, id } = req.body;
   try {
     const newThread = await db.one(
-      "INSERT INTO threads (player_name, scenario_id, created_at) VALUES ($1, $2, NOW()) RETURNING *",
-      [player_name, scenario_id]
+      "INSERT INTO threads (player_name, id, created_at) VALUES ($1, $2, NOW()) RETURNING *",
+      [player_name, id]
     );
     res.status(201).json(newThread);
   } catch (error) {
