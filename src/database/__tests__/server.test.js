@@ -22,13 +22,16 @@ describe("POST /threads", () => {
   });
 });
 
-describe("PUT /threads", () => {
-  test("adds a new thread with player_name added", async () => {
-      return request(app)
-          .post("/threads")
-          .send({player_name: "name"})
-          .expect('Content-Type', /json/)
-          .expect(201)
+describe("PUT /thread/:id/choice", () => {
+  test("inserts the new questions and user choices to existing thread", async () => {
+    const response = await request(app)
+      .put("/thread/2/choice")
+      .send({ 
+        choice_id: 5,
+        question_id: 6,
+      })
+      .expect('Content-Type', /json/);
+    expect(response.status).toBe(200); 
   });
 });
 
