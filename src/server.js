@@ -59,7 +59,7 @@ app.get("/questions/:id", async (req, res) => {
 });
 
 // GET random initial question (4 or 5)
-app.get("/threads", async (req, res) => {
+app.get("/initial-thread", async (req, res) => {
   try {
     const initialQuestionIds = [4, 5];
     const randomQuestionId = initialQuestionIds[Math.floor(Math.random() * initialQuestionIds.length)];
@@ -83,24 +83,19 @@ app.get("/previous-threads", async (req, res) => {
 });
 
 // Update the thread as user plays
-app.put('/:id', async (req, res) => {
+app.put('/thread/:id/choice', async (req, res) => {
   const { id } = req.params;
-  const { question_id, user_choice_selection } = req.body;
+  const { question_id, choice_id } = req.body;
 
   try {
-    // Update the thread
-    const result = await db.query(
-      `UPDATE threads
-      SET
-        question_id = $1,
-        user_choice_selection = $2
-      WHERE id = $3`,
-      [question_id, user_choice_selection, id]
+    // Update the threadquestions table
+    const result = await db.none( 
+      ` INSERT INTO threadquestions (question_id, choice_id, thread_id)
+      VALUES ($1, $2, $3)
+      `,
+      [question_id, choice_id, id]
     );
-
-    res.json({ message: 'Thread updated successfully' });
-
-
+    res.json({ message: 'Choice inserted successfully' });
   } catch (error) {
     console.error('Error updating thread:', error);
     res.status(500).json({ error: 'Failed to update thread' });
@@ -109,17 +104,17 @@ app.put('/:id', async (req, res) => {
 
 // POST to create a new thread
 app.post("/threads", async (req, res) => {
-  const { player_name, id } = req.body;
+  const { player_name } = req.body;
   try {
     const newThread = await db.one(
-      "INSERT INTO threads (player_name, id, created_at) VALUES ($1, $2, NOW()) RETURNING *",
-      [player_name, id]
+      "INSERT INTO threads (player_name, created_at) VALUES ($1, NOW()) RETURNING *",
+      [player_name]
     );
     res.status(201).json(newThread);
   } catch (error) {
     console.error("Error creating a new thread:", error);
 
-    res.status(500).json({ error: "Failed to create new thread", originalError: error.message }); 
+    res.status(500).json({ error: "Failed to create new thread" }); 
   }
 });
 
@@ -143,6 +138,8 @@ app.get("/threads/:id", async (req, res) => {
   }
 });
 
-app.listen(port, function() {
+app.server = app.listen(port, function() {
   console.log("Server is running on port " + port);
 });
+
+export default app;
