@@ -24,7 +24,11 @@ What does it hold?
 - [ ] Choices - different choices and holds a  value 
 - [ ] Follow up - for when there is more than one question asked
 - [ ] ThreadQuestion - holds the thread for saving and allows adding questions and choices
-- [ ] Thread - holds the thread
+- [ ] Thread - holds the thread  
+Examples of what's going on
+<img width="729" alt="Screenshot 2025-05-05 at 10 59 33 AM" src="https://github.com/user-attachments/assets/f2044311-a629-47a5-8618-f6729e74ac82" />
+<img width="542" alt="Screenshot 2025-05-05 at 10 59 18 AM" src="https://github.com/user-attachments/assets/4415dd7c-20de-4ea8-87a8-f586e8e76a80" />
+
 
 ## To use this locally
 
