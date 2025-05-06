@@ -141,14 +141,28 @@ app.get("/threads/:id", async (req, res) => {
 // POST to set a thread as favorite
 app.post("/threads/:id/favorite", async (req, res) => {
   const threadId = parseInt(req.params.id);
+
+  if (isNaN(threadId)) {
+    return res.status(400).json({ error: "Invalid thread ID" });
+  }
+
   try {
-    await db.none("UPDATE threads SET favorites = true WHERE id = $1", [threadId]);
+    //debug: check to make sure it is actually getting the thread
+    console.log(`Got the favorites request to /threads/${threadId}/favorite`);    
+    const result = await db.result("UPDATE threads SET favorites = true WHERE id = $1", [threadId]);
+    if (result.rowCount === 0) {
+      // getting the log for error 
+      console.log(`Thread with ID ${threadId} not found.`);
+      return res.status(404).json({ error: "Thread not found" });
+    }
     res.json({ message: "Thread favorited successfully" });
   } catch (error) {
     console.error(`Error favoriting thread ${threadId}`, error);
-    res.status(500).json({ error: `Failed to favorite thread: ${error.message}` });
+    res.status(500).json({ error: `Failed to favorite thread: ${error.message || 'Internal server error'}` }); // Include the error message
   }
 });
+
+
   
 app.server = app.listen(port, function() {
   console.log("Server is running on port " + port);
