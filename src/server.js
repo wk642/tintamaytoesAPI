@@ -142,7 +142,7 @@ app.get("/threads/:id", async (req, res) => {
 app.post("/threads/:id/favorite", async (req, res) => {
   const threadId = parseInt(req.params.id);
   try {
-    await db.none("UPDATE threads SET is_favorite = true WHERE id = $1", [threadId]);
+    await db.none("UPDATE threads SET favorite = true WHERE id = $1", [threadId]);
     res.json({ message: "Thread favorited successfully" });
   } catch (error) {
     console.error(`Error favoriting thread ${threadId}`, error);
