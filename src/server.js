@@ -145,11 +145,11 @@ app.post("/threads/:id/favorite", async (req, res) => {
     await db.none("UPDATE threads SET is_favorite = true WHERE id = $1", [threadId]);
     res.json({ message: "Thread favorited successfully" });
   } catch (error) {
-    console.error(`Error unable ot favorite thread ${threadId}`, error);
-    res.status(500).json({ error: `Failed to favorite thread ${threadId}` });
+    console.error(`Error favoriting thread ${threadId}`, error);
+    res.status(500).json({ error: `Failed to favorite thread: ${error.message}` });
   }
 });
-
+  
 app.server = app.listen(port, function() {
   console.log("Server is running on port " + port);
 });
