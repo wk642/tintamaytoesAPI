@@ -162,6 +162,25 @@ app.post("/threads/:id/favorite", async (req, res) => {
   }
 });
 
+// DELETE route to delete a thread
+app.delete("/threads/:id", async (req, res) => {
+  const threadId = parseInt(req.params.id);
+
+  if (isNaN(threadId)) {
+    return res.status(400).json({ error: "Invalid thread ID" });
+  }
+
+  try {
+    const result = await db.result("DELETE FROM threads WHERE id = $1", [threadId]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Thread not found" });
+    }
+    res.json({ message: "Thread deleted successfully" });
+  } catch (error) {
+    console.error(`Error deleting thread ${threadId}`, error);
+    res.status(500).json({ error: `Failed to delete thread: ${error.message}` });
+  }
+});
 
   
 app.server = app.listen(port, function() {
