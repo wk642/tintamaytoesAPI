@@ -16,7 +16,7 @@ describe("POST /threads", () => {
   test("adds a new thread with player_name added", async () => {
       return request(app)
           .post("/threads")
-          .send({player_name: "name"})
+          .send({player_name: "test"})
           .expect('Content-Type', /json/)
           .expect(201)
   });
