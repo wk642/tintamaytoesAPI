@@ -2,6 +2,8 @@ import express, { json } from "express";
 import cors from "cors";
 import pgPromise from "pg-promise";
 import "dotenv/config";
+import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
 
 const app = express();
 const port = 5000;
@@ -110,7 +112,25 @@ app.post("/threads", async (req, res) => {
   }
 });
 
-// GET thread by ID
+/**
+ * @openapi
+ * /threads/{id}:
+ *   get:
+ *     summary: Get thread by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Thread found
+ *       400:
+ *         description: Invalid thread ID
+ *       404:
+ *         description: Thread not found
+ */
 app.get("/threads/:id", async (req, res) => {
   const threadId = parseInt(req.params.id);
 
@@ -173,6 +193,16 @@ app.delete("/threads/:id", async (req, res) => {
     res.status(500).json({ error: `Failed to delete thread: ${error.message}` });
   }
 });
+
+const swaggerSpec = swaggerJsdoc({
+  definition: {
+    openapi: '3.0.0',
+    info: { title: 'Tintamaytoes API', version: '1.0.0' },
+  },
+  apis: ['./src/server.js'], // Path to your API docs
+});
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
   
 app.server = app.listen(port, function() {
