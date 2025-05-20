@@ -202,8 +202,17 @@ const swaggerSpec = swaggerJsdoc({
   apis: ['./src/server.js'], // Path to your API docs
 });
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get('/api-docs/swagger.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+}
+);
 
+const swaggerOptions = {
+  explorer: true,
+}
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions));
   
 app.server = app.listen(port, function() {
   console.log("Server is running on port " + port);
