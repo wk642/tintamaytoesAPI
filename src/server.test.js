@@ -3,21 +3,6 @@ import request from "supertest";
 import app from "./server.js";
 import "dotenv/config";
 
-// Remove dbconnectionURL import as it's not used here and was incorrectly importing from server.js
-// Remove the direct import of db, as it's being mocked.
-
-// The mock for './database/db' needs to be before any code that might implicitly try to import it,
-// and it should fully replace the module.
-jest.mock("./database/db", () => ({
-  oneOrNone: jest.fn(),
-  many: jest.fn(),
-  none: jest.fn(),
-}));
-
-// Now, after the mock, you can import the mocked db object.
-// We need to import it here so that the tests can interact with the mocked functions.
-import db from "./database/db";
-
 describe("GET /previous-threads", () => {
   test("should return all threads", async () => {
       await request(app) // Added await
@@ -51,45 +36,59 @@ describe("PUT /thread/:id/choice", () => {
 });
 
 describe("GET /threads/:id", () => {
-  // It's good that you're resetting the mock before each test.
   beforeEach(() => {
-    db.oneOrNone.mockReset();
+    dbconnectionURL.oneOrNone.mockReset(); // Reset the mock before each test
   });
 
   test("should return the thread for a valid ID", async () => {
     const validThreadId = 1;
     const mockThread = { id: validThreadId, player_name: "Test Player", created_at: "2025-05-20T00:00:00Z" };
 
-    db.oneOrNone.mockResolvedValue(mockThread);
+    // Mock the database response for a valid thread ID
+    dbconnectionURL.oneOrNone.mockResolvedValue(mockThread);
 
     const response = await request(app)
       .get(`/threads/${validThreadId}`)
       .expect("Content-Type", /json/)
       .expect(200);
 
+    // Assert the response matches the mock thread
     expect(response.body).toEqual(mockThread);
-    // You might also want to assert that db.oneOrNone was called with the correct arguments.
-    expect(db.oneOrNone).toHaveBeenCalledWith(expect.any(String), [validThreadId]);
+
+    // Assert the database query was called with the correct SQL and parameters
+    expect(dbconnectionURL.oneOrNone).toHaveBeenCalledWith("SELECT * FROM threads WHERE id = $1", [validThreadId]);
   });
 
   test("should return 404 for a non-existent thread ID", async () => {
     const nonExistentThreadId = 999;
-    db.oneOrNone.mockResolvedValue(null); // Simulate no thread found
 
-    await request(app)
+    // Mock the database response to simulate no thread found
+    dbconnectionURL.oneOrNone.mockResolvedValue(null);
+
+    const response = await request(app)
       .get(`/threads/${nonExistentThreadId}`)
-      .expect(404); // Expect a 404 Not Found status
-    expect(db.oneOrNone).toHaveBeenCalledWith(expect.any(String), [nonExistentThreadId]);
-  });
-});
+      .expect("Content-Type", /json/)
+      .expect(404);
 
-afterAll(()=> {
-  // Ensure the server instance has a close method. If `app` is an Express app,
-  // the server object is usually returned by `app.listen()`.
-  // If your `app` is just the Express app instance, and you start the server elsewhere for testing,
-  // you might need to adjust how you get the server instance to close it.
-  // Assuming `app.server` is indeed the http.Server instance.
-  if (app.server && typeof app.server.close === 'function') {
-    app.server.close();
-  }
+    // Assert the response contains the correct error message
+    expect(response.body).toHaveProperty("error", "Thread not found");
+
+    // Assert the database query was called with the correct SQL and parameters
+    expect(dbconnectionURL.oneOrNone).toHaveBeenCalledWith("SELECT * FROM threads WHERE id = $1", [nonExistentThreadId]);
+  });
+
+  test("should return 400 for an invalid thread ID (non-integer)", async () => {
+    const invalidThreadId = "abc";
+
+    const response = await request(app)
+      .get(`/threads/${invalidThreadId}`)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    // Assert the response contains the correct error message
+    expect(response.body).toHaveProperty("error", "Invalid thread ID");
+
+    // Assert the database query was not called
+    expect(dbconnectionURL.oneOrNone).not.toHaveBeenCalled();
+  });
 });
