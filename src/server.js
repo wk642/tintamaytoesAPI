@@ -2,6 +2,8 @@ import express, { json } from "express";
 import cors from "cors";
 import pgPromise from "pg-promise";
 import "dotenv/config";
+import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
 
 const app = express();
 const port = 5000;
@@ -13,8 +15,8 @@ app.use(json());
 
 // connect to database
 const pgp = pgPromise();
-const db = pgp(dbconnectionURL);
-
+// const db = pgp(dbconnectionURL);
+app.db = pgp(dbconnectionURL);
 // Testing to make sure it connects to the back end
 app.get("/test-connection", function(req, res) {
   res.json("Welcome! Back end to Tin - Ta - Maytoes - API is now connected");
@@ -29,12 +31,12 @@ app.get("/questions/:id", async (req, res) => {
   }
 
   try {
-    const question = await db.oneOrNone("SELECT id, text FROM questions WHERE id = $1", [questionId]);
+    const question = await app.db.oneOrNone("SELECT id, text FROM questions WHERE id = $1", [questionId]);
     if (!question) {
       return res.status(404).json({ error: "Question not found" });
     }
 
-    const choices = await db.many(
+    const choices = await app.db.many(
       `SELECT id, text, value
        FROM choices
        WHERE question_id = $1
@@ -55,7 +57,7 @@ app.get("/initial-thread", async (req, res) => {
   try {
     const initialQuestionIds = [4, 5];
     const randomQuestionId = initialQuestionIds[Math.floor(Math.random() * initialQuestionIds.length)];
-    const question = await db.one("SELECT id, text FROM questions WHERE id = $1", [randomQuestionId]); 
+    const question = await app.db.one("SELECT id, text FROM questions WHERE id = $1", [randomQuestionId]); 
     res.json([question]);
   } catch (error) {
     console.error("Error fetching threads:", error);
@@ -66,7 +68,7 @@ app.get("/initial-thread", async (req, res) => {
 // GET all threads from the thread table
 app.get("/previous-threads", async (req, res) => {
   try {
-    const allThreads = await db.many("SELECT * FROM threads");
+    const allThreads = await app.db.many("SELECT * FROM threads");
     res.json(allThreads);
   } catch (error) {
     console.error("Error fetching all threads:", error);
@@ -81,7 +83,7 @@ app.put('/thread/:id/choice', async (req, res) => {
 
   try {
     // Update the threadquestions table
-    const result = await db.none( 
+    const result = await app.db.none( 
       ` INSERT INTO threadquestions (question_id, choice_id, thread_id)
       VALUES ($1, $2, $3)
       `,
@@ -98,7 +100,7 @@ app.put('/thread/:id/choice', async (req, res) => {
 app.post("/threads", async (req, res) => {
   const { player_name } = req.body;
   try {
-    const newThread = await db.one(
+    const newThread = await app.db.one(
       "INSERT INTO threads (player_name, created_at) VALUES ($1, NOW()) RETURNING *",
       [player_name]
     );
@@ -110,7 +112,25 @@ app.post("/threads", async (req, res) => {
   }
 });
 
-// GET thread by ID
+/**
+ * @openapi
+ * /threads/{id}:
+ *   get:
+ *     summary: Get thread by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Thread found
+ *       400:
+ *         description: Invalid thread ID
+ *       404:
+ *         description: Thread not found
+ */
 app.get("/threads/:id", async (req, res) => {
   const threadId = parseInt(req.params.id);
 
@@ -119,7 +139,7 @@ app.get("/threads/:id", async (req, res) => {
   }
 
   try {
-    const thread = await db.oneOrNone("SELECT * FROM threads WHERE id = $1", [threadId]);
+    const thread = await app.db.oneOrNone("SELECT * FROM threads WHERE id = $1", [threadId]);
     if (!thread) {
       return res.status(404).json({ error: "Thread not found" });
     }
@@ -141,7 +161,7 @@ app.post("/threads/:id/favorite", async (req, res) => {
   try {
     //debug: check to make sure it is actually getting the thread
     console.log(`Got the favorites request to /threads/${threadId}/favorite`);    
-    const result = await db.result("UPDATE threads SET favorites = true WHERE id = $1", [threadId]);
+    const result = await app.db.result("UPDATE threads SET favorites = true WHERE id = $1", [threadId]);
     if (result.rowCount === 0) {
       // getting the log for error 
       console.log(`Thread with ID ${threadId} not found.`);
@@ -163,7 +183,7 @@ app.delete("/threads/:id", async (req, res) => {
   }
 
   try {
-    const result = await db.result("DELETE FROM threads WHERE id = $1", [threadId]);
+    const result = await app.db.result("DELETE FROM threads WHERE id = $1", [threadId]);
     if (result.rowCount === 0) {
       return res.status(404).json({ error: "Thread not found" });
     }
@@ -174,6 +194,25 @@ app.delete("/threads/:id", async (req, res) => {
   }
 });
 
+const swaggerSpec = swaggerJsdoc({
+  definition: {
+    openapi: '3.0.0',
+    info: { title: 'Tintamaytoes API', version: '1.0.0' },
+  },
+  apis: ['./src/server.js'], // Path to your API docs
+});
+
+app.get('/api-docs/swagger.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+}
+);
+
+const swaggerOptions = {
+  explorer: true,
+}
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions));
   
 app.server = app.listen(port, function() {
   console.log("Server is running on port " + port);
