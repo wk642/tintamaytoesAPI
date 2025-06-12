@@ -7,6 +7,7 @@ import swaggerUi from 'swagger-ui-express';
 
 const app = express();
 const port = 5000;
+// deploying on render. use internal db for this
 var dbconnectionURL = process.env.TINTAMAYTOES_DB_URL; 
 console.log("db", dbconnectionURL);
 
